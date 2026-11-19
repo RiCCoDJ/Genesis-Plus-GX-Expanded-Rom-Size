@@ -1,0 +1,31 @@
+name: Compilar core Paprium (ARM64 para RG40XX-H)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar el compilador ARM64
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu make file
+
+      - name: Compilar
+        run: make -f Makefile.libretro platform=unix CC=aarch64-linux-gnu-gcc -j"$(nproc)"
+
+      - name: Comprobar y reducir tamano
+        run: |
+          aarch64-linux-gnu-strip genesis_plus_gx_libretro.so
+          file genesis_plus_gx_libretro.so
+          ls -la genesis_plus_gx_libretro.so
+
+      - name: Guardar el resultado
+        uses: actions/upload-artifact@v4
+        with:
+          name: genesis_plus_gx_libretro-aarch64
+          path: genesis_plus_gx_libretro.so
